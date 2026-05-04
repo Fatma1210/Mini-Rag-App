@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     FILE_MAX_SIZE: int
     FILE_DEFAULT_CHUNK_SIZE: int
 
+    MONGODB_URI: str
+    MONGODB_DATABASE: str   
+
     model_config = SettingsConfigDict(env_file=".env")  # ✅ pydantic v2 way
 
 @lru_cache()  # ✅ cache so .env is only read once
