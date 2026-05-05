@@ -16,3 +16,14 @@ class Project(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+    @classmethod # static method for indexing the project_id field in the database
+    def get_indexes(cls):
+        return [
+            {
+                "key": [("project_id", 1)], 
+                "name": "project_id_index",
+                "unique": True
+            }
+        ]
