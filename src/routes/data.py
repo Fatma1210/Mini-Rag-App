@@ -96,6 +96,9 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
     project_model = await ProjectModel.create_instance(
         db_client=request.app.db_client
     )
+    asset_model = await AssetModel.create_instance(
+    db_client= request.app.db_client
+    )
 
     project = await project_model.get_project_or_create_one(
         project_id=project_id
@@ -105,18 +108,30 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
 
     project_file_ids = []
     if process_request.file_id is not None:
-        project_file_ids = [process_request.file_id]
+        asset_record = await AssetModel.get_asset(
+            asset_project_id= project.id,
+            asset_name= process_request.file_id
+        )
+        if asset_record is None:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "signal": ResponseSignal.NO_FILES_TO_PROCESS.value
+                }
+            )
+        project_file_ids = { str(asset_record.id) : asset_record.asset_name} 
     else:
         #get all file assets for the project
-        asset_model = await AssetModel.create_instance(
-            db_client= request.app.db_client
-        )
+  
         project_files = await asset_model.get_all_project_assets(
             asset_project_id= project.id,
             asset_type= AssetTypeEnum.FILE.value
         )
 
-        project_file_ids = [asset["asset_name"] for asset in project_files]
+        project_file_ids = {
+            asset.id : asset.asset_name 
+            for asset in project_files
+            }
 
         if len(project_file_ids) == 0:
             return JSONResponse(
@@ -125,10 +140,21 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
                     "signal": ResponseSignal.NO_FILES_TO_PROCESS.value
                 }
             )
+    chunk_model = await ChunckModel.create_instance(
+         db_client=request.app.db_client
+         )
+    if do_reset == 1:
+        _ = await chunk_model.delete_chunks_by_project_id(
+            project_id=project.id
+        )
     no_records = 0
     no_files_processed = 0
-    for file_id in project_file_ids:
+    for asset_id , file_id in project_file_ids.items():
             file_content = process_controller.get_file_content(file_id=file_id)
+            
+            if file_content is None:
+                logger.error(f"Error while processing file with id: {file_id}")
+                continue
 
             file_chunks = process_controller.process_file_content(
                 file_content=file_content,
@@ -151,18 +177,11 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
                     chunk_metadata=chunk.metadata,
                     chunk_order=i+1,
                     chunk_project_id=project.id,
+                    chunk_asset_id=asset_id
                 )
                 for i, chunk in enumerate(file_chunks)
             ]
 
-            chunk_model = await ChunckModel.create_instance(
-                db_client=request.app.db_client
-            )
-
-            if do_reset == 1:
-                _ = await chunk_model.delete_chunks_by_project_id(
-                    project_id=project.id
-                )
 
             no_records += await chunk_model.insert_many_chunks(chunks=file_chunks_records)
             no_files_processed += 1
