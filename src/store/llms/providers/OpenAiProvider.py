@@ -31,11 +31,6 @@ class OpenAiProvider(LLMInterface):
         self.logger = logging.getLogger(__name__)
         
 
-
-
-
-
-
     def set_generation_model(self , model_id: str):
         self.generation_model = model_id
         

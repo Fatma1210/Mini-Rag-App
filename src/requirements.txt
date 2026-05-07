@@ -8,3 +8,4 @@ pymupdf==1.24.3
 motor==3.4.0
 pymongo==4.7.3
 openai==2.35.1
+cohere==6.1.0
