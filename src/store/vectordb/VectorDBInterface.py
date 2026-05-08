@@ -27,6 +27,10 @@ class VectorDBInterface():
                                   embedding_size:int ,
                                  do_reset: bool = False):
         pass
+        
+    @abstractmethod
+    def delete_collection(self , collection_name: str):
+        pass
 
     @abstractmethod    
     def insert_one(self ,collection_name: str , 
