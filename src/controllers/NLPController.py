@@ -54,4 +54,26 @@ class NLPController(BaseController):
             vectors = vectors ,
             record_ids = chunks_ids
         )
-
+    
+    def search_vector_db_collection(self , project:Project , text: str , limit: int):
+        #step1: get collection name
+        vectordb_client = self.create_collection_name(project_id = project.project_id)
+        #step2: get text embedding vector
+        vector = self.embedding_client.generate_embeddings(
+                text = text , 
+                document_type = DocumentTypesEnums.QUERY.value
+                )
+        if not vector or len(vector) == 0 : 
+            return False
+        #step3: do semantic search
+        results = self.vectordb_client.search_by_vector(
+            collection_name = vectordb_client ,
+            vector = vector , 
+            limit = limit
+        )
+        if not results or len(results) == 0 :
+            return False
+        return json.loads(
+            json.dumps(results , 
+            default = lambda x:x.__dict__)
+        )
