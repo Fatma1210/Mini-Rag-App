@@ -14,3 +14,4 @@ class ResponseSignal(Enum):
     FILE_ID_ERROR= "no_file_found_with_this_id"
     INSERT_INTO_VECTORDB_ERROR = "insert_into_vectordb_error"
     INSERT_INTO_VECTORDB_SUCCESS = "success"
+    VECTORDB_COLLECTION_RETRIEVED = "vectordb_collection_retrieved"
