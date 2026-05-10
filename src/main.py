@@ -1,8 +1,8 @@
 from fastapi import FastAPI
-from routes import base , data
+from routes import base , data , nlp
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from helpers.config import Settings , get_settings 
+from helpers.config import get_settings , Settings
 
 from store.llms.LLMSProviderFactory import LLMSProviderFactory
 
@@ -31,7 +31,7 @@ async def startup_db_client():
         )
 
     #Vector_DataBase_Client
-    app.vector_vectordb_client = vectordb_provider_factory.create(
+    app.vectordb_client = vectordb_provider_factory.create(
         provider = settings.VECTOR_DB_BACKEND
     )
 
@@ -41,3 +41,4 @@ async def shutdown_db_client():
 
 app.include_router(base.base_router)
 app.include_router(data.data_router)
+app.include_router(nlp.nlp_router)
