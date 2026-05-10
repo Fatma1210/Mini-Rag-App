@@ -1,21 +1,24 @@
 from qdrant_client import models , QdrantClient
+from qdrant_client.models import Distance, VectorParams, PointStruct
 from ..VectorDBInterface import VectorDBInterface
 from ..VectorDBEnums import DistanceMethodEnums
+
 from typing import List
+import logging 
 class QdrantDB(VectorDBInterface):
     def __init__(self , db_path: str , distance_method: str):
 
         self.client = None
-        self.db_path = db_path 
+        self.db_path = db_path
         self.distance_method = None
-        
-        if distance_method == DistanceMethodEnums.COSINE.value :
-            distance_method =  models.Distance.COSINE
+
+        if distance_method == DistanceMethodEnums.COSINE.value:
+            self.distance_method = models.Distance.COSINE
         elif distance_method == DistanceMethodEnums.DOT.value:
-            distance_method = models.Distance.DOT
+            self.distance_method = models.Distance.DOT
 
         self.logger = logging.getLogger(__name__)
-            
+        self.connect()
         
     def connect(self):
         self.client = QdrantClient(path = self.db_path)
@@ -39,7 +42,7 @@ class QdrantDB(VectorDBInterface):
                                   embedding_size:int ,
                                  do_reset: bool = False):
                 if do_reset: 
-                    _ = selfdelete_collection(collection_name=collection_name)
+                    _ = self.delete_collection(collection_name=collection_name)
                 if not self.is_collection_existed(collection_name):
                     self.client.create_collection(
                     collection_name=collection_name,
@@ -51,7 +54,7 @@ class QdrantDB(VectorDBInterface):
                     return False
                 
     def delete_collection(self , collection_name: str):
-        if self.is_collection_existed(collection_name)
+        if self.is_collection_existed(collection_name=collection_name):
            return self.client.delete_collection(collection_name=collection_name)
       
     def insert_one(self ,collection_name: str , 
@@ -63,18 +66,19 @@ class QdrantDB(VectorDBInterface):
             self.logger.error(f"Can not insert new record to non_existed collection : {collection_name}")
             return False
         try:
-            _ = self.client.upload_records(
-                collection_name = collection_name , 
-                records = [
-                    models.Record( 
-                        vector= vector , 
-                        payload = (
-                            "text": text , 
-                            "metadata": metadata
-                        )
-                    )
-                ]
-            )
+            _ = self.client.upsert(
+    collection_name=collection_name,
+    points=[
+        PointStruct(
+            id=record_id,
+            vector=vector,
+            payload={
+                "text": text,
+                "metadata": metadata
+            }
+        )
+    ]
+)
         except Exception as e : 
              self.logger.error(f"Error while inserting batch: {e}")
              return False
@@ -90,7 +94,10 @@ class QdrantDB(VectorDBInterface):
                          batch_size: int = 50 
                          ) :
         if metadata is None:
-            metadata = [None] = len(texts)
+           metadata = [None] * len(texts)
+        if record_ids is None:
+            record_ids = list(range(0 , len(texts)))
+
        
         for i in range(0 , len(texts) , batch_size):
             batch_end = i + batch_size
@@ -98,25 +105,26 @@ class QdrantDB(VectorDBInterface):
             batch_texts = texts[i : batch_end]
             batch_vectors = vectors[i : batch_end]
             batch_metadata = metadata[i : batch_end]
-
+            batch_record_ids = record_ids[i : batch_end]
+        try:
             batch_records = [
-                models.Record(
-                    vector = batch_vectors[x] , 
-                    payload = (
-                        "text": batch_texts[x] , 
+                PointStruct(
+                    id=batch_record_ids[x],
+                    vector=batch_vectors[x],
+                    payload={
+                        "text": batch_texts[x],
                         "metadata": batch_metadata[x]
-                    )
+                    }
                 )
                 for x in range(len(batch_texts))
             ]
-            try: 
-                _ = self.client.upload_records(
-                    collection_name = collection_name , 
-                    records = batch_records
-                )
-            except Exception as e : 
-                self.logger.error(f"Error while inserting batch: {e}")
-                return False
+            result = self.client.upsert(
+                collection_name=collection_name,
+                points=batch_records
+            )
+        except Exception as e:
+            self.logger.error(f"Error while inserting batch: {e}")
+            return False
         return True
 
                 
