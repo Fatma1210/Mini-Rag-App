@@ -60,19 +60,18 @@ class OpenAiProvider(LLMInterface):
             max_tokens=max_output_tokens,
             temperature=temperature
         )
-        if response is None or not response.choices or len(response.choices) == 0 
-        or not response.choices[0].message or not response.choices[0].message.content:
+        if response is None or not response.choices or len(response.choices) == 0 or not response.choices[0].message or not response.choices[0].message.content:
             self.logger.error("Error while generation text with OpenAI.")
             return None
 
         return response.choices[0].message["content"]
          
-    def generate_embedding(self , text: str , document_type: str = None):
+    def generate_embeddings(self , text: str , document_type: str = None):
         if not self.client:
           self.logger.error("OpenAI client not initialized.")
           return None
         if not self.embedding_model_id:
-          self.logger.error("Embedding model wasn'tt set.")
+          self.logger.error("Embedding model not set.")
           return None
         response = self.client.embeddings.create(
             input=text,
