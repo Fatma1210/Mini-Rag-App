@@ -1,9 +1,9 @@
 from .LLMEnums import LLMEnums
-from .Providers import CoHereProvider , OpenAiProvider
+from .providers import CoHereProvider , OpenAiProvider
 class LLMSProviderFactory():
     def __init__(self , config: dict):
         self.config = config
-        self.settings = get_settings()
+        # self.settings = get_settings()
     def create(self , provider: str):
         if provider == LLMEnums.OPENAI.value:
             return OpenAiProvider(

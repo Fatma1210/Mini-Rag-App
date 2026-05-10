@@ -1,4 +1,4 @@
-from abc import ABC , abstractmethod
+from abc import ABC, abstractmethod
 
 
 class LLMInterface(ABC):
@@ -17,9 +17,9 @@ class LLMInterface(ABC):
         pass
     
     @abstractmethod
-    def generate_embedding(self , text: str , document_type: str = None):
+    def generate_embeddings(self , text: str , document_type: str = None):
         pass
     
     @abstractmethod
-    def construct prompt(self , prompt: str , role: str):
+    def construct_prompt(self , prompt: str , role: str):
         pass
