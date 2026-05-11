@@ -2,6 +2,7 @@ from qdrant_client import models , QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from ..VectorDBInterface import VectorDBInterface
 from ..VectorDBEnums import DistanceMethodEnums
+from models.db_schemes import RetrievedDocument
 
 from typing import List
 import logging 
@@ -134,4 +135,13 @@ class QdrantDB(VectorDBInterface):
             query=vector,
             limit=limit
         )
-        return results.points  
+        if not results.points or len(results.points) == 0: 
+            return None
+       
+        return [
+            RetrievedDocument(**{
+                "score": point.score,           # ✅ access each point
+                "text": point.payload["text"]   # ✅ access payload from each point
+            })
+        for point in results.points         # ✅ iterate over the list
+    ] 
