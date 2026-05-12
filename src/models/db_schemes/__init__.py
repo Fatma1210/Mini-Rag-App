@@ -1,4 +1,4 @@
 from .Project import Project
-from .DataChunk import DataChunk
+from .DataChunk import DataChunk, RetrievedDocument
 from .asset import Asset
-from .DataChunk import RetrievedDocument
+
