@@ -19,7 +19,6 @@ class QdrantDB(VectorDBInterface):
             self.distance_method = models.Distance.DOT
 
         self.logger = logging.getLogger(__name__)
-        self.connect()
         
     def connect(self):
         self.client = QdrantClient(path = self.db_path)
