@@ -18,6 +18,7 @@ class CoHereProvider(LLMInterface):
         self.embedding_model_id = None
         self.embedding_size = None
 
+        self.enums = CoHereEnums
         self.client = cohere.ClientV2(
             api_key=self.api_key 
         )
@@ -46,19 +47,19 @@ class CoHereProvider(LLMInterface):
             return None
         max_output_tokens = max_output_tokens if max_output_tokens else self.default_output_max_tokens
         temperature = temperature if temperature else self.default_temperature
-        
+        messages = chat_history + [
+         self.construct_prompt(self.process_text(prompt), CoHereEnums.USER.value)
+        ]
         
         response = self.client.chat(
             model=self.generation_model_id,
-            chat_history=chat_history , 
-            message=self.process_text(prompt) ,
+            messages=messages ,
             max_tokens=max_output_tokens,
             temperature=temperature
 
         )
-        if response and response.text:
-            chat_history.append(self.construct_prompt(prompt , CoHereEnums.USER.value))
-            return response.text.strip()
+        if response and response.message and response.message.content:
+            return response.message.content[0].text.strip()
         else:
             self.logger.error("No response text received from CoHere.")
             return None
@@ -89,5 +90,5 @@ class CoHereProvider(LLMInterface):
     def construct_prompt(self , prompt: str , role: str):
         return {
             "role": role,
-            "text": self.process_text(prompt)
+            "content": self.process_text(prompt)
         }
