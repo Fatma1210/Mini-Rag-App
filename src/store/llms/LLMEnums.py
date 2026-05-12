@@ -14,9 +14,9 @@ class OpenAIEnums(Enum):
 
 
 class CoHereEnums(Enum):
-    SYSTEM = "SYSTEM"
-    USER = "USER"
-    ASSISTANT = "ASSISTANT"
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "assistant"
 
     DOCUMENT = "search_document" 
     QUERY = "search_query"
