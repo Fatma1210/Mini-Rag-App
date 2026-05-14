@@ -10,3 +10,5 @@ pymongo==4.7.3
 openai==2.35.1
 cohere==6.1.0
 qdrant-client==1.17.1
+groq==1.2.0
+google-genai==2.2.0

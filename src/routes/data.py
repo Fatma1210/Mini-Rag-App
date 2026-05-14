@@ -192,3 +192,29 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
             "processed_files": no_files_processed
         }
     )
+@data_router.get("/chunks/{project_id}")
+async def get_chunks(request: Request, project_id: str, page: int = 1):
+    chunk_model = await ChunckModel.create_instance(
+        db_client=request.app.db_client
+    )
+    project_model = await ProjectModel.create_instance(
+        db_client=request.app.db_client
+    )
+    project = await project_model.get_project_or_create_one(project_id=project_id)
+    
+    chunks = await chunk_model.get_project_chunks(
+        project_id=project.id,
+        page_no=page
+    )
+    return JSONResponse(
+        status_code=200,
+        content={
+            "chunks": [
+                {
+                    "order": c.chunk_order,
+                    "text": c.chunk_text
+                }
+                for c in chunks
+            ]
+        }
+    )

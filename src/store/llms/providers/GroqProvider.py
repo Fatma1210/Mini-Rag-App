@@ -1,15 +1,17 @@
 from ..LLMInterface import LLMInterface
-from openai import OpenAI
-from ..LLMEnums import OpenAIEnums
+from ..LLMEnums import GroqEnums , DocumentTypesEnums
 import logging
+import os
+from groq import Groq
 
 
 
-class OpenAiProvider(LLMInterface):
+
+class GroqProvider(LLMInterface):
     
     def __init__(self , api_key: str , api_url: str = None ,
-                        default_input_max_characters: int = 1000 ,
-                         default_output_max_tokens: int = 1000 ,
+                        default_input_max_characters: int = 10000 ,
+                         default_output_max_tokens: int = 10000 ,
                          default_temperature: float = 0.1):
         self.api_key = api_key
         self.api_url = api_url
@@ -20,12 +22,11 @@ class OpenAiProvider(LLMInterface):
 
         self.generation_model_id = None
 
-        self.embedding_model_id = None
-        self.embedding_size = None
+   
 
-        self.enums = OpenAIEnums
+        self.enums = GroqEnums
 
-        self.client = OpenAI(
+        self.client = Groq(
             api_key=self.api_key ,
             base_url=self.api_url
         )
@@ -38,15 +39,14 @@ class OpenAiProvider(LLMInterface):
         
 
     def set_embedding_model(self , model_id: str , embedding_size: int):
-        self.embedding_model_id = model_id
-        self.embedding_size = embedding_size
+        pass
     
     def process_text(self , text: str):
         return text[:self.default_input_max_characters].strip()
 
     def generate_text(self , prompt: str , chat_history: list = [] , max_output_tokens: int = None , temperature: float = None):
         if self.client is None:
-            self.logger.error("OpenAI client not initialized.")
+            self.logger.error("Groq client not initialized.")
             return None
         if self.generation_model_id is None:
             self.logger.error("Generation model not set.")
@@ -54,7 +54,7 @@ class OpenAiProvider(LLMInterface):
         max_output_tokens = max_output_tokens if max_output_tokens else self.default_output_max_tokens
         temperature = temperature if temperature else self.default_temperature
         
-        chat_history.append(self.construct_prompt(prompt , OpenAIEnums.USER.value))
+        chat_history.append(self.construct_prompt(prompt , GroqEnums.USER.value))
         
         response = self.client.chat.completions.create(
             model=self.generation_model_id,
@@ -63,32 +63,18 @@ class OpenAiProvider(LLMInterface):
             temperature=temperature
         )
         if response is None or not response.choices or len(response.choices) == 0 or not response.choices[0].message or not response.choices[0].message.content:
-            self.logger.error("Error while generation text with OpenAI.")
+            self.logger.error("Error while generation text with Groq.")
             return None
 
-        return response.choices[0].message["content"]
+        return response.choices[0].message.content.strip()
          
     def generate_embeddings(self , text: str , document_type: str = None):
-        if not self.client:
-          self.logger.error("OpenAI client not initialized.")
-          return None
-        if not self.embedding_model_id:
-          self.logger.error("Embedding model not set.")
-          return None
-        response = self.client.embeddings.create(
-            input=text,
-            model=self.embedding_model_id
-        )
-        if response is None or not response.data or len(response.data) == 0 or response.data[0].embedding is None:
-            self.logger.error("No embedding returned from OpenAI.")
-            return None
-        embedding = response.data[0].embedding
-        print(embedding)
-        return embedding
+        pass
+
 
 
     def construct_prompt(self , prompt: str , role: str):
         return {
             "role": role,
-            "content": self.process_text(prompt)
+            "content": prompt
         }
