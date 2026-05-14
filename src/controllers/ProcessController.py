@@ -4,7 +4,7 @@ from .ProjectController import ProjectController
 
 from langchain_community.document_loaders import PyMuPDFLoader, TextLoader
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from models import ProcessingEnum
 
