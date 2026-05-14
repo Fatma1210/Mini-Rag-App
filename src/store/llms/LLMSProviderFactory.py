@@ -1,5 +1,5 @@
 from .LLMEnums import LLMEnums
-from .providers import CoHereProvider , OpenAiProvider
+from .providers import CoHereProvider , OpenAiProvider , GroqProvider , GeminiProvider
 class LLMSProviderFactory():
     def __init__(self , config: dict):
         self.config = config
@@ -16,6 +16,20 @@ class LLMSProviderFactory():
         if provider == LLMEnums.COHERE.value:
             return CoHereProvider(
                 api_key = self.config.COHERE_API_KEY , 
+                default_input_max_characters = self.config.INPUT_DEFAULT_MAX_CHARACTERS ,
+                default_output_max_tokens = self.config.GENERATION_DEFAULT_MAX_TOKENS ,
+                default_temperature = self.config.GENERATION_DEFAULT_TEMPERATURE
+            )
+        if provider == LLMEnums.GROQ.value:
+            return GroqProvider(
+                api_key = self.config.GROQ_API_KEY , 
+                default_input_max_characters = self.config.INPUT_DEFAULT_MAX_CHARACTERS ,
+                default_output_max_tokens = self.config.GENERATION_DEFAULT_MAX_TOKENS ,
+                default_temperature = self.config.GENERATION_DEFAULT_TEMPERATURE
+            )
+        if provider == LLMEnums.GEMINI.value:
+            return GeminiProvider(
+                api_key=self.config.GEMINI_API_KEY , 
                 default_input_max_characters = self.config.INPUT_DEFAULT_MAX_CHARACTERS ,
                 default_output_max_tokens = self.config.GENERATION_DEFAULT_MAX_TOKENS ,
                 default_temperature = self.config.GENERATION_DEFAULT_TEMPERATURE
