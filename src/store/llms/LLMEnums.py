@@ -4,8 +4,8 @@ class LLMEnums(Enum):
     OPENAI = "OPENAI"
     COHERE = "COHERE"
     ANTHROPIC = "ANTHROPIC"
-    AZURE_OPENAI = "AZURE_OPENAI"
-    CUSTOM = "CUSTOM"
+    GROQ = "GROQ"
+    GEMINI = "GEMINI"
 
 class OpenAIEnums(Enum):
     SYSTEM = "system"
@@ -24,3 +24,18 @@ class CoHereEnums(Enum):
 class DocumentTypesEnums(Enum):
     DOCUMENT = "document"
     QUERY = "query"
+class GroqEnums(Enum):
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "assistant"
+
+    DOCUMENT = "search_document"
+    QUERY = "search_query"
+
+class GeminiEnums(Enum):
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "model"
+
+    DOCUMENT = "search_document"
+    QUERY = "search_query"
